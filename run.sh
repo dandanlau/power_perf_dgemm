@@ -4,12 +4,13 @@
 TDP=360000
 #set the power limit
 power_limit=400000
+initial_power_limit=$power_limit
 half_TDP=$((TDP / 2))
 rm result.txt
 
 # Start the loop
-#while [ $power_limit -ge $half_TDP ]
-while [ $power_limit -ge 0 ]
+while [ $power_limit -ge 390000 ]
+#while [ $power_limit -ge 0 ]
 do
 	echo "Setting current power limit: $power_limit" >> result.txt
 	/opt/e-sms/e_smi/bin/e_smi_tool --setpowerlimit 0 $power_limit
@@ -36,3 +37,9 @@ do
     	power_limit=$((power_limit - 10000))
 done
 
+echo "Test done, setting back to original power limit: $initial_power_limit"
+/opt/e-sms/e_smi/bin/e_smi_tool --setpowerlimit 0 $initial_power_limit
+
+# add a timestamp to the result file
+timestamp=$(date "+%Y.%m.%d-%H.%M.%S")
+mv result.txt result_${timestamp}.txt
