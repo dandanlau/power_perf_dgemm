@@ -18,12 +18,34 @@ do
 	# Use grep to find the line containing "GFLOPS" and write it to result.txt
 	output=$(sudo ./run_dgemm.py > output_tmp.txt) &
 	job_id=$!
+
+
+	#wait for 10s so the test spins up
 	sleep 10
-#	clkfreq=$(/opt/e-sms/e_smi/bin/e_smi_tool --showclocks)
 
 
 	# this will grep the core frequencof the first 'n' cores, and do an average it. 
 	clkfreq_allcore=$(grep "^[c]pu MHz" /proc/cpuinfo | head -n 8)
+
+	################### Get PState info from AVT ###########################
+	/opt/AMD/AVT/AVTCMD -module pstates "getcorepstate()" > Pstate_tmp.txt
+	#Initialize en empty array to store the PState info
+	declare -a PStateArray
+	#Read the input file line by line
+	while IFS= read -r line
+	do
+	       	#use awk to extract the PState info
+		PStateInfo=$(echo $line | awk -F'PState: ' '{print $2}' | awk '{print $1}')	
+		# Add the PState info to the array
+  		PStateArray+=("$PStateInfo")
+	done < "Pstate_tmp.txt"
+
+		# Print the array
+		echo "PStateArray = ${PStateArray[@]} " >> result.txt
+
+
+
+
 	wait $job_id
 	
 
